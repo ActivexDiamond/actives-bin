@@ -1,0 +1,9 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================= Safe Guards ==============================
+! getopt --test
+#============================= Script Vars ==============================
+
+#============================= Main  ==============================
+

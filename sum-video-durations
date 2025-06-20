@@ -1,0 +1,69 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber 				#Common safety settings, useful for most scripts.
+
+#============================= Safe Guards ==============================
+
+#============================= Configs ==============================
+thickSeperator="================================================="
+thinSeperator="-------------------------------------------------"
+seperatorColor=4 			#blue
+headerColor=8 				#gray
+highlightColor=3 			#yellow
+filenameColor=5 			#purple
+durationColor=6				#cyan
+totalDurationColor=6 	 	#cyan
+totalDurationTextColor=2 	#green
+errorColor=1 				#red
+
+#============================= Script Vars ==============================
+#Set path to arg1 if passed, or to pwd if not.
+path="${1:-$PWD}"
+# echo $path
+
+doRecursion="${2:-false}"
+if [[ "$2" =~ ^(-r|-R|--recursive)$ ]]; then
+	doRecursion=true
+elif ! [[ -z "$2" ]] then
+	echo "Invalid argument passed to second paramater. Must be empty, or one of: -r | -R | --recursive"
+	exit 1
+fi
+#echo $doRecursion
+
+#============================ Helpers ==============================
+## Credit for these two functions (getDuration and printDuration) goes to "sourav c." for his answer at: https://askubuntu.com/a/600343
+getDuration(){
+	# arg0 = path
+    ffprobe "$1" 2>&1 | grep Duration | awk -F[:,] '{print int($2*3600+$3*60+$4)}'
+}
+printDuration(){
+	# arg0 = duration
+    awk -v var="$1" 'BEGIN { printf "%02d:%02d:%02d\n", int(var/3600), int((var%3600)/60), int(var%60) }'
+}
+
+processDir(){
+	# arg0 = path
+	printf "%s$thickSeperator\n" $(tput setaf $seperatorColor)
+	if [ $doRecursion = true ]; then
+		# mapfile -d $'\0' dirs < <(find "$1" -type d -print0)
+		printf "%sPerforming %srecursive%s search of file: $path\n" $(tput setaf $headerColor) $(tput setaf $highlightColor) $(tput setaf $headerColor)
+		mapfile -d $'\0' files < <(find "$1" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.flv" \) -print0)
+	else	
+		# mapfile -d $'\0' dirs < <(find "$1" -maxdepth 1 -type d -print0)
+		printf "%sPerforming %sflat%s search of file: $path\n" $(tput setaf $headerColor) $(tput setaf $highlightColor) $(tput setaf $headerColor)
+		mapfile -d $'\0' files < <(find "$1" -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.flv" \) -print0)
+	fi
+	printf "%s$thinSeperator\n" $(tput setaf $seperatorColor)
+	for i in "${files[@]}"
+	do
+		duration=$(getDuration "$i")
+		totalDuration=$((totalDuration+duration))
+		printf "%s%-40s %s%s\n" $(tput setaf $filenameColor) "$i" $(tput setaf $durationColor) $(printDuration $duration)
+	done
+	printf "%s$thinSeperator\n" $(tput setaf $seperatorColor)
+	tput sgr0
+	printf "%s%-40s %s%s\n" $(tput setaf $totalDurationTextColor) "Total Duration: " $(tput setaf $totalDurationColor) $(printDuration $totalDuration) 
+	printf "%s$thickSeperator\n" $(tput setaf $seperatorColor)
+}
+
+#============================= Main  ==============================
+processDir "$path"

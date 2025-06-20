@@ -1,0 +1,69 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================= Safe Guards ==============================
+if [ -z "$CUSTOM_SCRIPTS_PATH" ]; then
+	echo "\$CUSTOM_SCRIPTS_PATH not set. Set it to some dir then run this script."
+	exit 2
+fi
+
+if [ $# -lt 1 ]; then
+	echo "Requires at least one argument; script name."
+	exit 1
+fi
+
+if [ $# -gt 2 ]; then
+	echo "Too many arguments. Pass a filename and an optional -b/--blank (to not insert the usual template into the script)."
+	exit 1
+fi
+
+if [ $# -eq 1 ]; then
+	if [[ "$1" == -b* ]] || [[ "$1" == --blank* ]]; then
+		echo "Missing filename."
+		exit
+	fi
+fi
+
+if [ $# -eq 2 ]; then
+	if ! ([ "$2" == "-b" ] || [ "$2" == "--blank" ] || [ "$1" == "-b" ] || [ "$1" == "--blank" ]); then
+		echo "Invalid option. Only valid option is -b/--blank"
+		exit 1
+	fi
+fi
+
+#============================= Script Vars ==============================
+filename="$1"
+if [ $# -eq 2 ] && ([ "$1" == "-b" ] || [ "$1" == "--blank" ]) then
+	filename="$2"
+fi	
+
+template="#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================= Safe Guards ==============================
+
+#============================= Script Vars ==============================
+
+#============================= Main  ==============================
+"
+
+#============================= Main ==============================
+if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
+	echo "\$CUSTOM_SCRIPTS_PATH does not exist, creating it."
+	mkdir "$CUSTOM_SCRIPTS_PATH"
+fi
+
+target="$CUSTOM_SCRIPTS_PATH/$filename"
+echo "Creating $target and chmod-ing it."
+
+if [ $# -eq 1 ]; then
+	echo "Adding the usual template to it."
+	echo "$template" > $target
+else
+	echo "Making blank file."
+	touch $target
+fi
+
+chmod +x "$target"
+
+

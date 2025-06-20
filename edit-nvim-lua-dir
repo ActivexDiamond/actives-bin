@@ -1,0 +1,24 @@
+#!/bin/bash
+
+cur_dir=${PWD##*/}           #Fetch only the last directory from `$PWD/`
+cur_dir=${cur_dir:-/}        #Correct for case where `$PWD=/`. (Normally would be blank, this makes it become `/`.
+
+if [ -d "src/" ]; then
+	dest="src/"
+elif [ -d "$cur_dir" ]; then
+	dest="$cur_dir"
+elif [ -f "init.lua" ]; then
+	dest="init.lua"
+elif [ -f "main.lua" ]; then
+	dest="main.lua"
+fi
+
+if [ -z "$dest" ]; then
+	echo "No valid targets found. :("
+	exit
+fi
+echo "Running nvim with '$dest'"
+nvim $dest
+
+
+

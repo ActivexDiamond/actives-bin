@@ -1,0 +1,28 @@
+#!/bin/bash
+
+dest="$HOME/Dropbox/code/Love/$1"
+src="src/"
+
+# Check for directory presence.
+if ! [ -d $dest ]; then
+	echo "'$dest' Project directory does not exist!"
+	exit 2
+fi
+
+#Setup selected `src` for nvim.
+if [ "$2" == "-s" ] || [ "$2" == "--same" ]; then
+	src="$1"
+elif ! [ -z "$2" ]; then
+	src="$2"
+fi
+
+#Check for selected `src` presence.
+if ! [ -d "$dest/$src" ]; then
+	echo "'$dest$src' Project src directory does not exist!"
+	exit 2
+fi
+
+#Do the good stuff!
+echo "Running $dest with PWD set to $src"
+cd "$dest"
+nvim "$src"

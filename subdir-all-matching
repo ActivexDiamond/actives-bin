@@ -1,0 +1,49 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================= Safe Guards ==============================
+#TODO: Add flags and change this to accomedate.
+if ! [ $# -eq 1 ]; then
+	echo "Requires a single argument; name prefix to subdir."
+	exit 1
+fi
+
+
+#============================= Script Vars ==============================
+pattern="*$1*"
+capture="$1"
+
+echo "Will look for all files matching $pattern and move them to $capture."
+
+#============================= Main  ==============================
+#Make dir to put them in.
+mkdir "$capture"
+#Move all captures.
+#Search current dir, and match only files that match name* AND name
+# 	(aka all except the dir made by mkdir above.)
+#Then pipe those to mv which moves them into the new dir.
+#Note: -print0 and -0 use null-terminated strings instead of \n. This way filenames can have whitespace, quotes, newlines, etc...
+find . -iname "$pattern" -a \! -iname "$capture" -print0 | xargs -0 -I{} mv "{}" "$capture/{}"
+
+#cd into new dir and delete prefix from name.
+
+echo "TODO: Figure out how to get example capture from pattern."
+echo "TODO: Figure out how to remove substring from name."
+echo "TODO: Dry-run mode which prints all changes but does nothing!"
+echo "TODO: Add flag to enable/disable passing -i to grep. Currently always on."
+echo "TODO: Add flag for dry-runs."
+echo "TODO: Remove everything after first special character."
+
+
+
+
+############ This command is old and I now use a better one. Keeping explanation here as it is still useful!
+#Issue: This will fail on names with quotes, newlines, etc... 
+# 	The xargs man suggests using `find -print0` with `xargs -0` and that works but the grepping will break.
+# 	That is what I now use, see above for how it currently works.
+#Explanation.
+#ls all files here, ignoring the one matching what was made by mkdir. So that it doesn't complain about moving capture/capture into itself.
+#grep relevant ones, ignoring case.
+#Move everything into the new dir made by mkdir above.
+#ls --ignore="$capture" | grep -i "$pattern" | | xargs -I{} mv "{}" "$capture"/"{}"
+
