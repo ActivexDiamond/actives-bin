@@ -17,7 +17,7 @@ errorColor=1 				#red
 
 #============================= Script Vars ==============================
 #Set path to arg1 if passed, or to pwd if not.
-path="${1:-$PWD}"
+path="${1:-.}"
 # echo $path
 
 doRecursion="${2:-false}"
