@@ -1,0 +1,44 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================ Safe Guards ==============================
+
+#============================ Dialog & Parse Vars ==============================
+#Brings up a yad dialog. The entered text will be used to create a new file.
+#Useful when bound to a shortcut inside Thunar, as Thunar does not have a keybind for this.
+
+yad_result=$(yad --form\
+	--title="New File"\
+	--field="Name" ""\
+	--field="Repeats:NUM" "1!1..100"\
+	--field="Append timestamp to name.:CHK" "FALSE"\
+	--field="Prefix timestamp to name:CHK" "FALSE"\
+)
+IFS='|' read -r -a opts <<< "$yad_result"
+
+filename=${opts[0]}
+repeats=${opts[1]}
+append_timestamp=${opts[2]}
+prefix_timestamp=${opts[3]}
+
+#echo "${opts[@]}"
+#echo $filename $repeats $append_timestamp $prefix_timestamp
+
+#If a global FDATE format is specified, used that, otherwise, use a fallback.
+fdate="${FDATE:-date +%F_%H-%M-%S}"
+date=$($fdate)
+echo $date
+
+#============================ Main =============================
+
+if [ $append_timestamp == "TRUE" ]; then filename="$filename $date"; fi
+if [ $prefix_timestamp == "TRUE" ]; then filename="$date $filename"; fi
+
+echo $filename
+
+#Skip the first one from the loop and do it seperately, as it doesn't need the "($i)" suffix.
+touch "$filename"
+
+for ((i = 1; i < repeats; i++)); do
+	touch "$filename ($i)"
+done
