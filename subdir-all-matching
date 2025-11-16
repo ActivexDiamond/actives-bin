@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
 
-#============================= Safe Guards ==============================
+#============================ Safe Guards ==============================
 #TODO: Add flags and change this to accomedate.
 if ! [ $# -eq 1 ]; then
 	echo "Requires a single argument; name prefix to subdir."
@@ -9,13 +9,13 @@ if ! [ $# -eq 1 ]; then
 fi
 
 
-#============================= Script Vars ==============================
+#============================ Script Vars ==============================
 pattern="*$1*"
 capture="$1"
 
 echo "Will look for all files matching $pattern and move them to $capture."
 
-#============================= Main  ==============================
+#============================ Main ==============================
 #Make dir to put them in.
 mkdir "$capture"
 #Move all captures.

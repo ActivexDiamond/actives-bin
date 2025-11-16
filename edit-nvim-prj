@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#TODO: Have a list of project dirs and shortnames for them. Pass the shortname as an arg.
+#Example: love, lua, unsyned, etc... which would map to their full paths.
 dest="$HOME/Dropbox/code/Love/$1"
 src="src/"
 

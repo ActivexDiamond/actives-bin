@@ -1,9 +1,9 @@
 #!/bin/bash
 set -o errexit -o pipefail -o noclobber 				#Common safety settings, useful for most scripts.
 
-#============================= Safe Guards ==============================
+#============================ Safe Guards ==============================
 
-#============================= Configs ==============================
+#============================ Configs ==============================
 thickSeperator="================================================="
 thinSeperator="-------------------------------------------------"
 seperatorColor=4 			#blue
@@ -15,7 +15,7 @@ totalDurationColor=6 	 	#cyan
 totalDurationTextColor=2 	#green
 errorColor=1 				#red
 
-#============================= Script Vars ==============================
+#============================ Script Vars ==============================
 #Set path to arg1 if passed, or to pwd if not.
 path="${1:-.}"
 # echo $path
@@ -65,5 +65,5 @@ processDir(){
 	printf "%s$thickSeperator\n" $(tput setaf $seperatorColor)
 }
 
-#============================= Main  ==============================
+#============================ Main ==============================
 processDir "$path"
