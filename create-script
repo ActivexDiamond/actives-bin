@@ -1,69 +1,82 @@
 #!/bin/bash
 set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
 
-#============================= Safe Guards ==============================
+help="Creates one or multiple new bash script(s) with a small template, makes it executable by the current user and opens it for editing..
+
+Usage:
+	create-script SCRIPT_NAME... [opts]
+	create-script -h/--h
+	FILE_NAME...	One or more filenames for the scripts.
+	-h/--help		Show this help dialog.
+	-b/--blank		Skips the usual template.
+	-n/--noeditor	Do not open the script in $EDITOR afterwards."
+
+#============================ Safe Guards ==============================
 if [ -z "$CUSTOM_SCRIPTS_PATH" ]; then
-	echo "\$CUSTOM_SCRIPTS_PATH not set. Set it to some dir then run this script."
-	exit 2
+	echo "[ERROR] \$CUSTOM_SCRIPTS_PATH not set. Set it to some dir then run this script."
+	exit 10
 fi
 
 if [ $# -lt 1 ]; then
-	echo "Requires at least one argument; script name."
+	echo "[ERROR] Requires at least one filename. Use -h for help."
 	exit 1
 fi
 
-if [ $# -gt 2 ]; then
-	echo "Too many arguments. Pass a filename and an optional -b/--blank (to not insert the usual template into the script)."
-	exit 1
-fi
+#if [ $# -gt 3 ]; then
+#	echo "[ERROR] Too many arguments. Use -h for help."
+#	exit 1
+#fi
 
-if [ $# -eq 1 ]; then
-	if [[ "$1" == -b* ]] || [[ "$1" == --blank* ]]; then
-		echo "Missing filename."
-		exit
-	fi
-fi
+#============================ Script Vars ==============================
+a_help=false
+a_blank=false
+a_noeditor=false
+filenames=()
 
-if [ $# -eq 2 ]; then
-	if ! ([ "$2" == "-b" ] || [ "$2" == "--blank" ] || [ "$1" == "-b" ] || [ "$1" == "--blank" ]); then
-		echo "Invalid option. Only valid option is -b/--blank"
-		exit 1
-	fi
-fi
-
-#============================= Script Vars ==============================
-filename="$1"
-if [ $# -eq 2 ] && ([ "$1" == "-b" ] || [ "$1" == "--blank" ]) then
-	filename="$2"
-fi	
+for arg; do
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ];     then   a_help=true
+	elif [ "$arg" == "-b" ] || [ "$arg" == "--blank" ];    then a_blank=true 
+	elif [ "$arg" == "-n" ] || [ "$arg" == "--noeditor" ]; then a_noeditor=true
+	else filenames+=("$arg"); fi
+done
+# echo $a_help  $a_blank $a_noeditor
+# echo "${filenames[*]}"
 
 template="#!/bin/bash
 set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
 
-#============================= Safe Guards ==============================
+#============================ Safe Guards ==============================
 
-#============================= Script Vars ==============================
+#============================ Script Vars ==============================
 
-#============================= Main  ==============================
+#============================ Main =============================
 "
 
-#============================= Main ==============================
+#============================ Main ==============================
+if $a_help; then
+	echo "$help"
+	exit 0
+fi
+
 if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
 	echo "\$CUSTOM_SCRIPTS_PATH does not exist, creating it."
 	mkdir "$CUSTOM_SCRIPTS_PATH"
 fi
 
-target="$CUSTOM_SCRIPTS_PATH/$filename"
-echo "Creating $target and chmod-ing it."
+for filename in $filenames; do
+	target="$CUSTOM_SCRIPTS_PATH/$filename"
+	echo "Creating $target and chmod-ing it."
 
-if [ $# -eq 1 ]; then
-	echo "Adding the usual template to it."
-	echo "$template" > $target
-else
-	echo "Making blank file."
-	touch $target
+	if $a_blank; then
+		echo "Making blank file."
+		touch $target
+	else
+		echo "Adding the usual template to it."
+		echo "$template" > $target
+	fi
+	chmod +x "$target"
+done
+
+if ! $a_noeditor; then
+	$EDITOR "${filenames[@]}"
 fi
-
-chmod +x "$target"
-
-
