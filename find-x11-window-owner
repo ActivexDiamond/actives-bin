@@ -1,0 +1,19 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+#============================ Main =============================
+echo "Select the window you want to target (with the mouse)."
+#Prompt user to select a window, and grab the PID.
+#Note that xprop prints some extra stuff, cut gets rid of that and keeps only the PID number.
+pid=$(xprop _NET_WM_PID | cut -d ' ' -f 3)
+
+#Show what program that proc/pid actually symlinks to. -l is needed to show the original file pointed to by the symlink.
+exeFullInfo=$(ls -l "/proc/$pid/exe" | cut -f -1)
+
+#Cut out everything from the string up until the last "-> " in it. This should show only the original file pointed to by the symlink.
+#Important: This will break if the sequence "-> " appears anywhere in the filename, but you really shouldn't name files like that, anyways.
+exe=${exeFullInfo##*-> }
+
+#Echo results to the user.
+echo "PID = $pid"
+echo "exe = $exe"
