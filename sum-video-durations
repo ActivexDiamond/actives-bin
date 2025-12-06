@@ -1,7 +1,37 @@
 #!/bin/bash
 set -o errexit -o pipefail -o noclobber 				#Common safety settings, useful for most scripts.
 
+help='Sums the duration of all video files in a given directory.
+Currently only accepts a hardcoded list of the following extensions: mp4, mkv, avi, flv
+
+Usage:
+    sum-video-durations [PATH] [options]
+    sum-video-durations -h/--help
+Arguments
+    PATH              The path to search in, defaults to $PWD.
+Options:
+    -h/--help         Show this help dialog.
+    -r.--recursive    Search PATH recursively.'
+
 #============================ Safe Guards ==============================
+#Valid Argument Counts
+min_args=0
+max_args=2				#Set to -1 for scripts that take unlimited args.
+
+#Exit Codes
+EXIT_SUCCESS=0
+EXIT_TOO_FEW_ARGS=10
+EXIT_TOO_MANY_ARGS=11
+
+if [ $# -lt $min_args ]; then
+	echo "[ERROR] Not enough arguments. Use -h for help."
+	exit $EXIT_TOO_FEW_ARGS
+fi
+
+if [ $max_args -ne -1 ] && [ $# -gt $max_args ]; then
+	echo "[ERROR] Too many arguments. Use -h for help."
+	exit $EXIT_TOO_MANY_ARGS
+fi
 
 #============================ Configs ==============================
 thickSeperator="================================================="
@@ -16,34 +46,35 @@ totalDurationTextColor=2 	#green
 errorColor=1 				#red
 
 #============================ Script Vars ==============================
-#Set path to arg1 if passed, or to pwd if not.
-path="${1:-.}"
-# echo $path
+#Options
+o_help=false
+o_recursive=false
 
-doRecursion="${2:-false}"
-if [[ "$2" =~ ^(-r|-R|--recursive)$ ]]; then
-	doRecursion=true
-elif ! [[ -z "$2" ]] then
-	echo "Invalid argument passed to second paramater. Must be empty, or one of: -r | -R | --recursive"
-	exit 1
-fi
-#echo $doRecursion
+#Arguments
+a_path="$PWD"
+
+for arg; do
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ];     then o_help=true
+	elif [ "$arg" == "-r" ] || [ "$arg" == "--recursive" ];    then o_recursive=true 
+	else a_path="$arg"; fi
+done
+# echo $path
 
 #============================ Helpers ==============================
 ## Credit for these two functions (getDuration and printDuration) goes to "sourav c." for his answer at: https://askubuntu.com/a/600343
 getDuration(){
 	# arg0 = path
-    ffprobe "$1" 2>&1 | grep Duration | awk -F[:,] '{print int($2*3600+$3*60+$4)}'
+	ffprobe "$1" 2>&1 | grep Duration | awk -F[:,] '{print int($2*3600+$3*60+$4)}'
 }
 printDuration(){
 	# arg0 = duration
-    awk -v var="$1" 'BEGIN { printf "%02d:%02d:%02d\n", int(var/3600), int((var%3600)/60), int(var%60) }'
+	awk -v var="$1" 'BEGIN { printf "%02d:%02d:%02d\n", int(var/3600), int((var%3600)/60), int(var%60) }'
 }
 
 processDir(){
 	# arg0 = path
 	printf "%s$thickSeperator\n" $(tput setaf $seperatorColor)
-	if [ $doRecursion = true ]; then
+	if [ $o_recursive = true ]; then
 		# mapfile -d $'\0' dirs < <(find "$1" -type d -print0)
 		printf "%sPerforming %srecursive%s search of file: $path\n" $(tput setaf $headerColor) $(tput setaf $highlightColor) $(tput setaf $headerColor)
 		mapfile -d $'\0' files < <(find "$1" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.avi" -o -iname "*.flv" \) -print0)
@@ -67,3 +98,5 @@ processDir(){
 
 #============================ Main ==============================
 processDir "$path"
+
+exit $EXIT_SUCCESS
