@@ -18,7 +18,7 @@ if [ -z "$dest" ]; then
 	exit
 fi
 echo "Running nvim with '$dest'"
-nvim $dest
+nvim "$dest"
 
 
 

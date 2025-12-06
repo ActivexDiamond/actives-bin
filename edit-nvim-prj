@@ -25,6 +25,6 @@ if ! [ -d "$dest/$src" ]; then
 fi
 
 #Do the good stuff!
-echo "Running $dest with PWD set to $src"
+echo "Running nvim $src with PWD set to $dest"
 cd "$dest"
 nvim "$src"
