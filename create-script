@@ -1,61 +1,120 @@
 #!/bin/bash
 set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
 
-help="Creates one or multiple new bash script(s) with a small template, makes it executable by the current user and opens it for editing..
+help='Creates one or multiple new bash script(s) with a small template, makes it executable by the current user and opens it for editing..
 
 Usage:
-	create-script SCRIPT_NAME... [opts]
-	create-script -h/--h
-	FILE_NAME...	One or more filenames for the scripts.
-	-h/--help		Show this help dialog.
-	-b/--blank		Skips the usual template.
-	-n/--noeditor	Do not open the script in $EDITOR afterwards."
+    create-script SCRIPT_NAME... [options]
+    create-script -h/--help
+Arguments:
+    FILE_NAME...     One or more a_filenames for the scripts.
+Options:
+    -h/--help        Show this help dialog.
+    -b/--blank       Skips the usual template.
+    -n/--noeditor    Do not open the script in $EDITOR afterwards.'
 
 #============================ Safe Guards ==============================
+#Valid Argument Counts
+min_args=1
+max_args=-1				#Set to -1 for scripts that take unlimited args.
+
+#Exit Codes
+EXIT_SUCCESS=0
+EXIT_TOO_FEW_ARGS=10
+EXIT_TOO_MANY_ARGS=11
+
+EXIT_MISSING_SCRIPT_PATH_ENV_VAR=1
+
 if [ -z "$CUSTOM_SCRIPTS_PATH" ]; then
 	echo "[ERROR] \$CUSTOM_SCRIPTS_PATH not set. Set it to some dir then run this script."
-	exit 10
+	exit $EXIT_MISSING_SCRIPT_PATH_ENV_VAR
 fi
 
-if [ $# -lt 1 ]; then
+if [ $# -lt $min_args ]; then
 	echo "[ERROR] Requires at least one filename. Use -h for help."
-	exit 1
+	exit $EXIT_TOO_FEW_ARGS
 fi
 
-#if [ $# -gt 3 ]; then
-#	echo "[ERROR] Too many arguments. Use -h for help."
-#	exit 1
-#fi
+if [ $max_args -ne -1 ] && [ $# -gt $max_args ]; then
+	echo "[ERROR] Too many arguments. Use -h for help."
+	exit $EXIT_TOO_MANY_ARGS
+fi
+
 
 #============================ Script Vars ==============================
-a_help=false
-a_blank=false
-a_noeditor=false
-filenames=()
+#Options
+o_help=false
+o_blank=false
+o_noeditor=false
+
+#Arguments
+a_filenames=()
 
 for arg; do
-	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ];     then   a_help=true
-	elif [ "$arg" == "-b" ] || [ "$arg" == "--blank" ];    then a_blank=true 
-	elif [ "$arg" == "-n" ] || [ "$arg" == "--noeditor" ]; then a_noeditor=true
-	else filenames+=("$arg"); fi
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ];     then o_help=true
+	elif [ "$arg" == "-b" ] || [ "$arg" == "--blank" ];    then o_blank=true 
+	elif [ "$arg" == "-n" ] || [ "$arg" == "--noeditor" ]; then o_noeditor=true
+	else a_filenames+=("$arg"); fi
 done
-# echo $a_help  $a_blank $a_noeditor
-# echo "${filenames[*]}"
+# echo $o_help  $o_blank $o_noeditor
+# echo "${a_filenames[*]}"
 
-template="#!/bin/bash
+template='#!/bin/bash
 set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
 
+help='"'"'DESCRIPTION
+
+Usage:
+    {SCRIPT_NAME} REQ_ARG_1 [options]
+    {SCRIPT_NAME} -h/--help
+Arguments:
+    REQ_ARG_1    DESCRIPTION.
+Options:
+    -h/--help    Show this help dialog.'"'"'
+
 #============================ Safe Guards ==============================
+#Valid Argument Counts
+min_args=1
+max_args=-1				#Set to -1 for scripts that take unlimited args.
+
+#Exit Codes
+EXIT_SUCCESS=0
+EXIT_TOO_FEW_ARGS=10
+EXIT_TOO_MANY_ARGS=11
+
+if [ $# -lt $min_args ]; then
+	echo "[ERROR] Not enough arguments. Use -h for help."
+	exit $EXIT_TOO_FEW_ARGS
+fi
+
+if [ $max_args -ne -1 ] && [ $# -gt $max_args ]; then
+	echo "[ERROR] Too many arguments. Use -h for help."
+	exit $EXIT_TOO_MANY_ARGS
+fi
 
 #============================ Script Vars ==============================
+#Options
+o_help=false
 
-#============================ Main =============================
-"
+#Arguments
+
+for arg; do
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ]; then o_help=true
+	fi
+done
 
 #============================ Main ==============================
-if $a_help; then
+if $o_help; then
 	echo "$help"
-	exit 0
+	exit $EXIT_SUCCESS
+fi
+
+exit $EXIT_SUCCESS'
+
+#============================ Main ==============================
+if $o_help; then
+	echo "$help"
+	exit $EXIT_SUCCESS
 fi
 
 if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
@@ -63,20 +122,22 @@ if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
 	mkdir "$CUSTOM_SCRIPTS_PATH"
 fi
 
-for filename in $filenames; do
+for filename in $a_filenames; do
 	target="$CUSTOM_SCRIPTS_PATH/$filename"
 	echo "Creating $target and chmod-ing it."
 
-	if $a_blank; then
+	if $o_blank; then
 		echo "Making blank file."
 		touch $target
 	else
 		echo "Adding the usual template to it."
-		echo "$template" > $target
+		echo "${template//\{SCRIPT_NAME\}/$filename}" > $target
 	fi
 	chmod +x "$target"
 done
 
-if ! $a_noeditor; then
-	$EDITOR "${filenames[@]}"
+if ! $o_noeditor; then
+	$EDITOR "${a_filenames[@]}"
 fi
+
+exit $EXIT_SUCCESS
