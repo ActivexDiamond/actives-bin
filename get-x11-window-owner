@@ -1,0 +1,72 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+help='Finds the executable responsible for a particular window. Allows selecting a window with the mouse.
+
+Usage:
+    find-x11-window-owner [PID]
+    find-x11-window-owner -h/--help
+Arguments:
+    PID          The PID of the window to check, if skipped, will prompt the user to select a window with the mouse.
+Options:
+    -h/--help    Show this help dialog.'
+
+#============================ Safe Guards ==============================
+#Valid Argument Counts
+min_args=0
+max_args=1				#Set to -1 for scripts that take unlimited args.
+
+#Exit Codes
+EXIT_SUCCESS=0
+EXIT_TOO_FEW_ARGS=10
+EXIT_TOO_MANY_ARGS=11
+
+if [ $# -lt $min_args ]; then
+	echo "[ERROR] Not enough arguments. Use -h for help."
+	exit $EXIT_TOO_FEW_ARGS
+fi
+
+if [ $max_args -ne -1 ] && [ $# -gt $max_args ]; then
+	echo "[ERROR] Too many arguments. Use -h for help."
+	exit $EXIT_TOO_MANY_ARGS
+fi
+
+#============================ Script Vars ==============================
+#Options
+o_help=false
+
+#Arguments
+a_pid=none
+
+for arg; do
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ]; then o_help=true
+	else a_pid="$arg"; fi
+done
+
+#============================ Main ==============================
+if $o_help; then
+	echo "$help"
+	exit $EXIT_SUCCESS
+fi
+
+if [ "$a_pid" == "none" ]; then
+	echo "Select the window you want to target (with the mouse)."
+	#Prompt user to select a window, and grab the PID.
+	#Note that xprop prints some extra stuff, cut gets rid of that and keeps only the PID number.
+	pid=$(xprop _NET_WM_PID | cut -d ' ' -f 3)
+else
+	pid=$a_pid
+fi
+
+#Show what program that proc/pid actually symlinks to. -l is needed to show the original file pointed to by the symlink.
+exeFullInfo=$(ls -l "/proc/$pid/exe" | cut -f -1)
+
+#Cut out everything from the string up until the last "-> " in it. This should show only the original file pointed to by the symlink.
+#Important: This will break if the sequence "-> " appears anywhere in the filename, but you really shouldn't name files like that, anyways.
+exe=${exeFullInfo##*-> }
+
+#Echo results to the user.
+if [ "$a_pid" == "none" ]; then echo "PID = $pid"; fi
+echo "exe = $exe"
+
+exit $EXIT_SUCCESS
