@@ -9,9 +9,9 @@ Usage:
 Arguments:
     FILE_NAME...     One or more a_filenames for the scripts.
 Options:
-    -h/--help        Show this help dialog.
-    -b/--blank       Skips the usual template.
-    -n/--noeditor    Do not open the script in $EDITOR afterwards.'
+    -h/--help      Show this help dialog.
+    -b/--blank     Skips the usual template.
+    -e/--editor    Open the script in $EDITOR afterwards.'
 
 #============================ Safe Guards ==============================
 #Valid Argument Counts
@@ -45,7 +45,7 @@ fi
 #Options
 o_help=false
 o_blank=false
-o_noeditor=false
+o_editor=false
 
 #Arguments
 a_filenames=()
@@ -53,10 +53,10 @@ a_filenames=()
 for arg; do
 	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ];     then o_help=true
 	elif [ "$arg" == "-b" ] || [ "$arg" == "--blank" ];    then o_blank=true 
-	elif [ "$arg" == "-n" ] || [ "$arg" == "--noeditor" ]; then o_noeditor=true
+	elif [ "$arg" == "-e" ] || [ "$arg" == "--editor" ]; then o_editor=true
 	else a_filenames+=("$arg"); fi
 done
-# echo $o_help  $o_blank $o_noeditor
+# echo $o_help  $o_blank $o_editor
 # echo "${a_filenames[*]}"
 
 template='#!/bin/bash
@@ -136,7 +136,7 @@ for filename in $a_filenames; do
 	chmod +x "$target"
 done
 
-if ! $o_noeditor; then
+if $o_editor; then
 	$EDITOR "${a_filenames[@]}"
 fi
 
