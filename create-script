@@ -124,7 +124,10 @@ fi
 
 for filename in "${a_filenames[@]}"; do
 	target="$CUSTOM_SCRIPTS_PATH/$filename"
-	echo "Creating $target and chmod-ing it."
+	if [ -f "$target" ]; then
+		echo "$target already exists, skipping it."
+		continue
+	fi
 
 	echo "Creating $target and chmod-ing it."
 	if $o_blank; then
