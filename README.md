@@ -1,5 +1,7 @@
 # Active's Bin
 A collection of short and useful Arch-/Linux-related scripts. Most are written in Bash.
+All scripts are as standalone as possible. No script depends on any other one in this bin, so you are free to snag only a single one; you do not need the entire bin.
+Most only require a POSIX system, though other might require extra dependencies such as a window system.
 
 Most are written by me but few are taken from online sources. In those cases, attribution is given in-script.
 
@@ -11,6 +13,7 @@ I recommend always using an equals, however that is simply a matter of style.
 I do my best to follow the best-practices recommended by [The Art of Unix Programming](http://catb.org/~esr/writings/taoup/html/index.html) in his segment about [CLI options](http://catb.org/~esr/writings/taoup/html/ch10s05.html).
 **IMPORTANT**: Chaining of Unix-style short options is currently not supported!
 
+Currently, errors for invalid options are not emitted properly. If a script is given more total arguments than it could ever handle, or less than the minimum
 A few examples:
 ```bash
 create-script foo
@@ -52,6 +55,10 @@ General (mostly `create-script`'s template):
 - [ ] Implement better parsing of options with arguments.
 - [ ] Implement forced positional arguments.
 - [ ] Implement support for man pages.
+- [ ] Automatically conclude min/max argument count from the argument parsing code / definition.
+
+Per-script (all:
+- [ ] Document the non-POSIX dependencies of each script, in its `help` message.
 
 # Credit
 Dulfiqar 'Active Diamond' H. Al-Safi
