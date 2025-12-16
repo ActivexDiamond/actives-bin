@@ -122,10 +122,11 @@ if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
 	mkdir "$CUSTOM_SCRIPTS_PATH"
 fi
 
-for filename in "$a_filenames"; do
+for filename in "${a_filenames[@]}"; do
 	target="$CUSTOM_SCRIPTS_PATH/$filename"
 	echo "Creating $target and chmod-ing it."
 
+	echo "Creating $target and chmod-ing it."
 	if $o_blank; then
 		echo "Making blank file."
 		touch "$target"
