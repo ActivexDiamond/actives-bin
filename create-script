@@ -122,16 +122,16 @@ if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
 	mkdir "$CUSTOM_SCRIPTS_PATH"
 fi
 
-for filename in $a_filenames; do
+for filename in "$a_filenames"; do
 	target="$CUSTOM_SCRIPTS_PATH/$filename"
 	echo "Creating $target and chmod-ing it."
 
 	if $o_blank; then
 		echo "Making blank file."
-		touch $target
+		touch "$target"
 	else
 		echo "Adding the usual template to it."
-		echo "${template//\{SCRIPT_NAME\}/$filename}" > $target
+		echo "${template//\{SCRIPT_NAME\}/$filename}" > "$target"
 	fi
 	chmod +x "$target"
 done
