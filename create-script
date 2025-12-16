@@ -122,8 +122,12 @@ if ! [ -d "$CUSTOM_SCRIPTS_PATH" ]; then
 	mkdir "$CUSTOM_SCRIPTS_PATH"
 fi
 
+targets=()
 for filename in "${a_filenames[@]}"; do
-	target="$CUSTOM_SCRIPTS_PATH/$filename"
+	targets+=("$CUSTOM_SCRIPTS_PATH/$filename")
+done
+
+for target in "${targets[@]}"; do
 	if [ -f "$target" ]; then
 		echo "$target already exists, skipping it."
 		continue
@@ -141,7 +145,7 @@ for filename in "${a_filenames[@]}"; do
 done
 
 if $o_editor; then
-	$EDITOR "${a_filenames[@]}"
+	$EDITOR "${targets[@]}"
 fi
 
 exit $EXIT_SUCCESS
