@@ -5,6 +5,20 @@ Most only require a POSIX system, though other might require extra dependencies 
 
 Most are written by me but few are taken from online sources. In those cases, attribution is given in-script.
 
+# Notable Scripts
+All scripts have `-h/--help` options which describe their usage. However here is a summary of some of my favourites.
+
+- `create-script`
+    - Creates a new script(s), in your directory of choice. Sets it to be executable by the current user. And fills it with a nice template. Then opens it using your $EDITOR.
+- `get-x11-window-owner`
+    - Gets the executable responsible for a particular window. Allows selecting your target window with the mouse.
+- `sum-video-durations`
+    - Goes through a given directory (optionally; recursively) and sums the durations of all videos found within.
+- `popup-new-file-dialog`
+    - Brings up a yad dialog with powerful options for creating blank files.
+- `popup-date-time-notification`
+    - Shows a notification with the current date, time, year-week, and unix-time. Useful if you don't like taskbars. :P
+
 # CLI Options
 Currently, they all accept Unix-style short options (E,g, `-a`) **and** GNU-style long options (E.g. `--all`).
 For options that take an argument, it may either written directly, seperated by a space, or seperated by an equals sign.
@@ -32,20 +46,6 @@ However, the following is currently not implemented.
 ```bash
 create-script foo -bn    # ERROR: NOT valid!
 ```
-
-# Notable Scripts
-All scripts have `-h/--help` options which describe their usage. However here is a summary of some of my favourites.
-
-- create-script
-    - Creates a new script(s), in your directory of choice. Sets it to be executable by the current user. And fills it with a nice template. Then opens it using your $EDITOR.
-- get-x11-window-owner
-    - Gets the executable responsible for a particular window. Allows selecting your target window with the mouse.
-- sum-video-durations
-    - Goes through a given directory (optionally; recursively) and sums the durations of all videos found within.
-- popup-new-file-dialog
-    - Brings up a yad dialog with powerful options for creating blank files.
-- popup-date-time-notification
-    - Shows a notification with the current date, time, year-week, and unix-time. Useful if you don't like taskbars. :P
 
 # TODO List
 General (mostly `create-script`'s template):
