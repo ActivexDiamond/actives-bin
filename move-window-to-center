@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#Moves the window to the center of the Primary X11 screen.
+
+#Gotten from: https://forum.xfce.org/viewtopic.php?id=11558
+#Modification by me: The xdpyinfo call is changed to this, so that it centers on the primary window.
+#This makes it work with setups of multiple monitors.
+
+#IFS='x' read screenWidth screenHeight < <(xdpyinfo | grep dimensions | grep -o '[0-9x]*' | head -n1)
+read -r ignore screenWidth screenHeight screenXOffset screenYOffset ignore2 ignore3 <<<$(xrandr | grep ' connected primary' | grep -oE '[0-9]+' | xargs echo)
+
+#echo "$screenWidth $screenHeight $screenXOffset $screenYOffset"
+
+width=$(xdotool getactivewindow getwindowgeometry --shell | head -4 | tail -1 | sed 's/[^0-9]*//')
+height=$(xdotool getactivewindow getwindowgeometry --shell | head -5 | tail -1 | sed 's/[^0-9]*//')
+
+newPosX=$(((screenWidth/2-width/2) + screenXOffset))
+newPosY=$(((screenHeight/2-height/2) + screenYOffset))
+
+xdotool getactivewindow windowmove "$newPosX" "$newPosY"
