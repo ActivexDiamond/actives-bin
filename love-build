@@ -1,0 +1,94 @@
+#!/bin/bash
+set -o errexit -o pipefail -o noclobber -o nounset 				#Common safety settings, useful for most scripts.
+
+help='Build a Love project. Currently creates a `.love` and a web build.
+	TODO: Support more platforms, and switches for what to build.
+	TODO: Better arg handling and more options.
+	TODO: Git integration.
+
+Usage:
+    love-build [INPUT_DIR=game/[, OUTPUT_DIR=releases/auto/[, VERSION=fdate]]]
+    love-biuld -h/--help
+Arguments:
+    REQ_ARG_1    DESCRIPTION.
+Options:
+    -h/--help    Show this help dialog.'
+
+#============================ Safe Guards ==============================
+#Valid Argument Counts
+min_args=0
+max_args=3				#Set to -1 for scripts that take unlimited args.
+
+#Exit Codes
+EXIT_SUCCESS=0
+EXIT_TOO_FEW_ARGS=10
+EXIT_TOO_MANY_ARGS=11
+
+if [ $# -lt $min_args ]; then
+	echo "[ERROR] Not enough arguments. Use -h for help."
+	exit $EXIT_TOO_FEW_ARGS
+fi
+
+if [ $max_args -ne -1 ] && [ $# -gt $max_args ]; then
+	echo "[ERROR] Too many arguments. Use -h for help."
+	exit $EXIT_TOO_MANY_ARGS
+fi
+
+#============================ Script Vars ==============================
+#Constants
+WEB_BUILDER_DIR="${HOME}/repos/love/love-web-builder-main/"
+WEB_BUILDER_CMD_INITIAL="python build.py -n"
+
+LOVE_TMP_NAME="out.zip"
+LOVE_BUILDER_CMD="patool -q create $LOVE_TMP_NAME ."
+
+#Options
+o_help=false
+
+#Arguments
+for arg; do
+	if   [ "$arg" == "-h" ] || [ "$arg" == "--help" ]; then o_help=true
+	fi
+done
+
+INPUT_DIR=${1:-"game/"}
+OUTPUT_DIR=${2:-"releases/auto/"}
+VERSION=${3:-$($FDATE)}
+
+#============================ Main ==============================
+if $o_help; then
+	echo "$help"
+	exit $EXIT_SUCCESS
+fi
+
+#Fetch game name.
+GAME_NAME=$(basename "$(pwd)")
+GAME_VERSIONED_NAME=${GAME_NAME}_$VERSION
+GAME_WEB_VERSIONED_NAME=${GAME_NAME}_web_$VERSION
+#echo -e "in=$INPUT_DIR    out=$OUTPUT_DIR    ver=$VERSION    name=$GAME_NAME\n"
+
+#Fetch full paths.
+INPUT_DIR_FULL="$(pwd)/$INPUT_DIR"
+OUTPUT_DIR_FULL="$(pwd)/$OUTPUT_DIR"
+#echo "Full input dir:  $INPUT_DIR_FULL" 
+#echo -e "Full output dir: $OUTPUT_DIR_FULL\n"
+
+#Make output directory.
+#`-p` will make parents, and fall silently if anything already exists. No need for checks.
+mkdir -p "$OUTPUT_DIR"
+
+#Prepare build.
+cd "$INPUT_DIR_FULL"
+eval $LOVE_BUILDER_CMD
+mv "$LOVE_TMP_NAME" "${OUTPUT_DIR_FULL}${GAME_VERSIONED_NAME}.love"
+
+#Begin build.
+cd "$WEB_BUILDER_DIR"
+#echo -e "Web builder dir: $(pwd)\n"
+WEB_BUILDER_CMD_FULL="$WEB_BUILDER_CMD_INITIAL \"$GAME_NAME\" \"$OUTPUT_DIR_FULL${GAME_VERSIONED_NAME}.love\" \"$OUTPUT_DIR_FULL${GAME_WEB_VERSIONED_NAME}/\" "
+#echo "$WEB_BUILDER_CMD_FULL"
+eval "$WEB_BUILDER_CMD_FULL"
+
+echo "Web build placed at: "
+echo "$OUTPUT_DIR_FULL$GAME_WEB_VERSIONED_NAME"
+exit $EXIT_SUCCESS
